@@ -1,6 +1,7 @@
-import { Box, Container, Grid, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Typography } from "@mui/material";
 import { useState } from "react";
 import Select from "react-select";
+import { calculateEmiApi } from "../Api/calculateEmi";
 
 const EmiCalculater = () => {
   const monthsArray = [
@@ -21,18 +22,40 @@ const EmiCalculater = () => {
     },
   ];
   const [months, setMonths] = useState({ value: 12 });
-  const [loanAmount, setLoanAmount] = useState();
-  const [intrestRate, setIntrestRate] = useState();
+  const [loanAmount, setLoanAmount] = useState(0);
+  const [intrestRate, setIntrestRate] = useState(0);
+  const [netEmiAmount, setNetEmiAmount] = useState(0);
 
+  // console.log("netEmiAmount", netEmiAmount);
 
-  const calculateEmi = () =>{
+  // const CalculateNetAmountOfEmi = useQuery([loanAmount,intrestRate,months],async()=> calculateEmiApi({
+  //   loanAmount:loanAmount,
+  //   intrestRate:intrestRate,
+  //   months:months?.value
+  // }))
+
+  // const handleCallEmiApi = async () => {
     
+  // };
+
+  const calculateEmi = async() => {
     const interest = (loanAmount * (intrestRate * 0.01)) / months?.value;
     // Calculating total payment
-    const total = ((loanAmount / months?.value) + interest).toFixed(2);
-    console.log('total',total);
-    return parseFloat(total)
-  }
+    const total = (loanAmount / months?.value + interest).toFixed(2);
+    if (loanAmount && intrestRate) {
+      setNetEmiAmount(total);
+      console.log('sad');
+    } else {
+      setNetEmiAmount(0);
+    }
+    console.log('netEmiAmount',total);
+    return await calculateEmiApi({
+      loanAmount: loanAmount,
+      interestRate: intrestRate,
+      months: months?.value,
+      netEmiAmount: total,
+    });
+  };
   return (
     <Container
       sx={{
@@ -40,12 +63,7 @@ const EmiCalculater = () => {
         py: 3,
       }}
     >
-      <Typography
-        textAlign={"center"}
-        fontSize={30}
-        fontWeight={700}
-        my={3}
-      >
+      <Typography textAlign={"center"} fontSize={30} fontWeight={700} my={3}>
         Emi
       </Typography>
 
@@ -67,7 +85,7 @@ const EmiCalculater = () => {
             Loan Amount
           </Typography>
           <Box display={"flex"}>
-            <input onInput={(e)=> setLoanAmount(e?.target?.value)} />
+            <input onInput={(e) => setLoanAmount(e?.target?.value)} />
             <Typography
               borderRadius={"0px 5px 5px 0px"}
               bgcolor={"#FFD40A"}
@@ -162,8 +180,12 @@ const EmiCalculater = () => {
           >
             Intrest
           </Typography>
-          <Box display={"flex"} >
-            <input onInput={(e)=> setIntrestRate(e?.target?.value)} />
+          <Box display={"flex"}>
+            <input
+              onInput={(e) => {
+                setIntrestRate(e?.target?.value);
+              }}
+            />
             <Typography
               borderRadius={"0px 5px 5px 0px"}
               bgcolor={"#FFD40A"}
@@ -178,31 +200,49 @@ const EmiCalculater = () => {
         </Grid>
       </Grid>
       <Box py={4}>
-      <Typography
-            fontSize={20}
+        <Typography
+          fontSize={20}
+          fontWeight={700}
+          lineHeight={2.5}
+          textAlign={"center"}
+        >
+          Total Loan Amount
+        </Typography>
+        <Box display={"flex"} width={"fit-content"} m={"auto"}>
+          <input value={netEmiAmount} style={{ width: "260px" }} />
+          <Typography
+            borderRadius={"0px 5px 5px 0px"}
+            bgcolor={"#FFD40A"}
+            width={"fit-content"}
             fontWeight={700}
-            lineHeight={2.5}
-            textAlign={"center"}
+            p={"10px"}
           >
-            Total Loan Amount
+            {" "}
+            RS
           </Typography>
-      <Box display={"flex"} width={'fit-content'} m={'auto'}>
-            <input value={calculateEmi() || '0'}  style={{width:'260px'}} />
-            <Typography
-              borderRadius={"0px 5px 5px 0px"}
-              bgcolor={"#FFD40A"}
-              width={"fit-content"}
-              fontWeight={700}
-              p={"10px"}
-            >
-              {" "}
-              RS
-            </Typography>
-          </Box>
+          <Button
+            variant="contained"
+            sx={{
+              background: "#FFD40A",
+              marginLeft: "10px",
+              color: "#000000",
+              fontWeight: 800,
+              ":hover": {
+                background: "#FFD40A",
+              },
+            }}
+            onClick={() => {
+              calculateEmi();
+              // setTimeout(() => {
+              //   handleCallEmiApi();
+              // }, 1500);
+            }}
+            disabled={loanAmount === 0 || intrestRate === 0}
+          >
+            Calculate
+          </Button>
+        </Box>
       </Box>
-
-      
-
     </Container>
   );
 };
